@@ -1,14 +1,12 @@
 "use client"
 
-// pages/job-recommendation.tsx
+// app/page.tsx
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -153,24 +151,28 @@ Salary expectation: $${formData.salaryExpectation[0]}`;
       
       console.log("Sending profile to backend:", combinedInput);
       
-      // Replace with your actual API endpoint
-      const response = await fetch('/api/job-recommendations', {
+      // Backend accepts either profile_text or student_profile - we'll use profile_text
+      const response = await fetch('http://127.0.0.1:8000/recommend/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({ 
-          student_profile: combinedInput 
+          profile_text: combinedInput 
         }),
       });
       
       if (!response.ok) {
-        throw new Error('Failed to get recommendations');
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to get recommendations');
       }
       
       const data: ApiResponse = await response.json();
+      console.log("Received recommendations:", data);
       setResult(data);
     } catch (err) {
+      console.error("Error:", err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
